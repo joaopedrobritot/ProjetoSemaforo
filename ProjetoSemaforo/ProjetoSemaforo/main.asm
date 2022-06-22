@@ -11,57 +11,59 @@
 .def temp = r16
 .def leds = r17 ;current LED value
 
-.def sinais0 = r0
-.def sinais1 = r1
-.def display0 = r2
-.def display1 = r3
-.def state = r4
+.def s1s2 = r0
+.def s3s4 = r1
+.def time = r2
+.def display0 = r3
+.def display1 = r4
+.def state = r5
 
+.def count = r15
 .cseg
 
 jmp reset
 .org OC1Aaddr
 jmp OCI1A_Interrupt
 
+;			t1: s1,s2   t2: s3,s4     Tempo
+states: .db 0b01001100, 0b10100001, 0b00010100, \
+			0b01001100, 0b10100010, 0b00000100, \
+			0b01001100, 0b10001100, 0b00110100, \
+			0b01010100, 0b10010100, 0b00000100, \
+			0b01100001, 0b10100100, 0b00010100, \
+			0b01100010, 0b10100100, 0b00000100, \
+			0b01100100, 0b10100100, 0b00010100, 0b00000000 \
+
+
 OCI1A_Interrupt:
-cpi r17, 0
-breq case0
-rcall s2
-ldi r17, 0
-rjmp return
+	dec time
+	ldi temp, 0
+	cp time, temp
+	breq next_state
+	rjmp exiting_intr
 
-case0:
-rcall s1
-ldi r17, 1
+	next_state:
+		ldi temp, 21
+		cp count, temp
+		brne update_state
+		ldi ZL, low(states*2)
+		ldi ZH, high(states*2)
+		ldi temp, 0
+		mov count, temp
+	update_state:
+		lpm s1s2, Z+
+		inc count
+		lpm s3s4, Z+
+		inc count
+		lpm time, Z+
+		inc count
 
+	exiting_intr:
+
+	;TODO: LOGICA DISPLAY E TEMPO
 
 	
-return:
-reti
-
-s1:
-ldi temp, 0b01001001
-mov sinais0, temp
-ldi temp, 0b10100100
-mov sinais1, temp
-ldi temp, 0b00011001
-mov display0, temp
-ldi temp, 0b00100001
-mov display1, temp
-
-ret
-
-s2:
-ldi temp, 0b01010010
-mov sinais0, temp
-ldi temp, 0b10001001
-mov sinais1, temp
-ldi temp, 0b00010111
-mov display0, temp
-ldi temp, 0b00100011
-mov display1, temp
-
-ret
+	reti
 
 .equ ClockMHz = 16
 .equ DelayMs = 5
@@ -122,18 +124,32 @@ reset:
 
 	ldi temp, 0
 	mov state, temp
+
+	ldi ZL, low(states*2)
+	ldi ZH, high(states*2)
+	ldi temp, 0
+	mov count, temp
+	lpm s1s2, Z+
+	inc count
+	lpm s3s4, Z+
+	inc count
+	lpm time, Z+
+	inc count
+
+
+
 	sei
 
 main:
-	ldi r16, 0
-	ldi r17, 0
+	ldi temp, 0
+	ldi leds, 0
 	main_lp:
-	out PORTD, r0
-	out PORTB, r2
+	out PORTD, s1s2
+	out PORTB, display0
 
 	Rcall Delay5ms
-	out PORTD, r1
-	out PORTB, r3
+	out PORTD, s3s4
+	out PORTB, display1
 
 	Rcall Delay5ms
 	
