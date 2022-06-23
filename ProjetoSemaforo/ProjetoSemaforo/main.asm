@@ -8,34 +8,72 @@
 ;		   Matheus Gêda
 ;
 
+; registrador utilizado para operações temporárias
 .def temp = r16
-.def leds = r17 ;current LED value
 
+/*
+ s1, s2, s3 e s4 são, respectivamente, os semáforos 1, 2, 3 e 4 (no circuito a ordem é de baixo para cima)
+*/
 .def s1s2 = r0
 .def s3s4 = r1
+
+; Registrador time será responsável por armazenar o tempo até o próximo estado (4s, 20s ou 52s)
 .def time = r2
+
+;Display 0 é o display de 7-seg que representa as unidades, enquanto o Display 1 representa o display dos decimais
 .def display0 = r3
 .def display1 = r4
-.def state = r5
 
-.def count = r15
+; Registrador count é responsável por contar (lógicamente) o endereço de memória dos estados (explicação abaixo)
+.def count = r5
+
+
 .cseg
-
+;Colocando a interrupção de reset na primeira posição da memória de programa
 jmp reset
+;Colocando a interrupção Timer de 1 segundo na posição OC1Aaddr
 .org OC1Aaddr
 jmp OCI1A_Interrupt
 
-;			t1: s1,s2   t2: s3,s4     Tempo
-states: .db 0b01001100, 0b10100001, 0b00010100, \
-			0b01001100, 0b10100010, 0b00000100, \
-			0b01001100, 0b10001100, 0b00110100, \
-			0b01010100, 0b10010100, 0b00000100, \
-			0b01100001, 0b10100100, 0b00010100, \
-			0b01100010, 0b10100100, 0b00000100, \
-			0b01100100, 0b10100100, 0b00010100, 0b00000000 \
+; Todo o código foi armazenado na memória após a interrupção Timer
+
+
+/* 
+Primeiramente foi armazenado na memória de programa as informações dos estados, essas informações são descritas
+da seguinte forma:
+
+Um estado é representado por 3 bytes, onde:
+- O 1º byte tem: 2 bits que selecionam o primeiro transistor e 3 bits para cada um dos dois primeiros semáforos (s1 e s2)
+- O 2º byte tem: 2 bits selecionando o segundo transistor e 3 bits para cada um dos dois últimos semáforos (s3 e s4)
+- O 3º byte é responsável por armazenar o tempo necessário para ir ao próximo estado
+
+Exemplos: 0b01001010 -> 01 selecionam o primeiro transistor (semáforos s1 e s2) 001 acende o sinal verde para s1
+						e 010 que acende o sinal amarelo para s2
+		  0b10100001 -> 10 selecionam o segundo transistor (semáforos s1 e s2) 100 acende o sinal vermelho para s3
+						e 001 que acende o sinal verde para s4
+
+t1, t2: transistores 1 e 2
+s1,s2,s3,s4: semáforos 1,2,3 e 4
+R: sinal vermelho
+G: verde
+Y: amarelo
+T: Tempo até o próximo estado
+*/
+
+;			  t1,s1,s2    t2,s3,s4    Tempo
+states: .db 0b01001100, 0b10100001, 0b00010100, \ ; Estado 1: s1:R / s2:G / s3:G / s4:R / T:20s
+			0b01001100, 0b10100010, 0b00000100, \ ; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s
+			0b01001100, 0b10001100, 0b00110100, \ ; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s
+			0b01010100, 0b10010100, 0b00000100, \ ; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s
+			0b01100001, 0b10100100, 0b00010100, \ ; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s
+			0b01100010, 0b10100100, 0b00000100, \ ; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s
+			0b01100100, 0b10100100, 0b00010100, \ ; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s
+			0b00000000 \ ; padding para completar a palavra na memória
 
 
 OCI1A_Interrupt:
+	;TODO STACK
+
 	dec time
 	ldi temp, 0
 	cp time, temp
@@ -57,12 +95,31 @@ OCI1A_Interrupt:
 		inc count
 		lpm time, Z+
 		inc count
-
 	exiting_intr:
 
-	;TODO: LOGICA DISPLAY E TEMPO
+		ldi temp, 0
+		mov display1, temp
+		mov temp, time
+		
 
-	
+	splitDigits:
+
+		cpi temp, 10
+		brlt dig0
+		inc display1
+		subi temp, 10
+		rjmp splitDigits
+
+		dig0:
+		mov display0, temp
+
+		ldi temp, 0b00100000
+		add display1, temp
+		ldi temp, 0b00010000
+		add display0, temp
+
+
+		;TODO STACK
 	reti
 
 .equ ClockMHz = 16
@@ -122,9 +179,6 @@ reset:
 	out DDRD, temp
 	out DDRB, temp
 
-	ldi temp, 0
-	mov state, temp
-
 	ldi ZL, low(states*2)
 	ldi ZH, high(states*2)
 	ldi temp, 0
@@ -141,9 +195,6 @@ reset:
 	sei
 
 main:
-	ldi temp, 0
-	ldi leds, 0
-	main_lp:
 	out PORTD, s1s2
 	out PORTB, display0
 
@@ -153,5 +204,5 @@ main:
 
 	Rcall Delay5ms
 	
-	rjmp main_lp
+	rjmp main
 

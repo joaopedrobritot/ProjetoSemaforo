@@ -22,14 +22,15 @@
   <FILE>ProjetoSemaforo.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <reset><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>82</LINE></reset>
-  <OCI1A_Interrupt><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>38</LINE></OCI1A_Interrupt>
-  <states><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>29</LINE></states>
-  <next_state><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>45</LINE></next_state>
+  <reset><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>102</LINE></reset>
+  <OCI1A_Interrupt><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>37</LINE></OCI1A_Interrupt>
+  <states><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>28</LINE></states>
+  <next_state><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>46</LINE></next_state>
   <exiting_intr><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>61</LINE></exiting_intr>
-  <update_state><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>53</LINE></update_state>
-  <Delay5ms><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>70</LINE></Delay5ms>
-  <main><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>143</LINE></main>
-  <main_lp><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>146</LINE></main_lp>
+  <update_state><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>54</LINE></update_state>
+  <splitDigits><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>68</LINE></splitDigits>
+  <dig0><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>76</LINE></dig0>
+  <Delay5ms><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>90</LINE></Delay5ms>
+  <main><FILE>C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>160</LINE></main>
  </LABELS>
 </ASSEMBLER_INFO>

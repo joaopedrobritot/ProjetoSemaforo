@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Wed Jun 22 16:55:16 2022
+AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Thu Jun 23 15:43:44 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
@@ -995,19 +995,18 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
                                  ;
                                  
                                  .def temp = r16
-                                 .def leds = r17 ;current LED value
                                  
                                  .def s1s2 = r0
                                  .def s3s4 = r1
                                  .def time = r2
                                  .def display0 = r3
                                  .def display1 = r4
-                                 .def state = r5
+                                 
                                  
                                  .def count = r15
                                  .cseg
                                  
-000000 940c 003e                 jmp reset
+000000 940c 004b                 jmp reset
                                  .org OC1Aaddr
 000016 940c 0023                 jmp OCI1A_Interrupt
                                  
@@ -1025,6 +1024,8 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
 000022 0014                      
                                  
                                  OCI1A_Interrupt:
+                                 	;TODO STACK
+                                 
 000023 942a                      	dec time
 000024 e000                      	ldi temp, 0
 000025 1620                      	cp time, temp
@@ -1046,34 +1047,53 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
 000032 94f3                      		inc count
 000033 9025                      		lpm time, Z+
 000034 94f3                      		inc count
-                                 
                                  	exiting_intr:
                                  
-                                 	;TODO: LOGICA DISPLAY E TEMPO
+000035 e000                      		ldi temp, 0
+000036 2e40                      		mov display1, temp
+000037 2d02                      		mov temp, time
+                                 		
                                  
-                                 	
-000035 9518                      	reti
+                                 	splitDigits:
+                                 
+000038 300a                      		cpi temp, 10
+000039 f01c                      		brlt dig0
+00003a 9443                      		inc display1
+00003b 500a                      		subi temp, 10
+00003c cffb                      		rjmp splitDigits
+                                 
+                                 		dig0:
+00003d 2e30                      		mov display0, temp
+                                 
+00003e e200                      		ldi temp, 0b00100000
+00003f 0e40                      		add display1, temp
+000040 e100                      		ldi temp, 0b00010000
+000041 0e30                      		add display0, temp
+                                 
+                                 
+                                 		;TODO STACK
+000042 9518                      	reti
                                  
                                  .equ ClockMHz = 16
                                  .equ DelayMs = 5
                                  Delay5ms:
-000036 e060                      	ldi r22, byte3(ClockMHz * 1000 * DelayMs / 5)
-000037 e35e                      	ldi r21, high(ClockMHz * 1000 * DelayMs / 5)
-000038 e840                      	ldi r20, low(ClockMHz * 1000 * DelayMs / 5)
+000043 e060                      	ldi r22, byte3(ClockMHz * 1000 * DelayMs / 5)
+000044 e35e                      	ldi r21, high(ClockMHz * 1000 * DelayMs / 5)
+000045 e840                      	ldi r20, low(ClockMHz * 1000 * DelayMs / 5)
                                  
-000039 5041                      	subi r20, 1
-00003a 4050                      	sbci r21, 0
-00003b 4060                      	sbci r22, 0
-00003c f7e0                      	brcc pc-3
+000046 5041                      	subi r20, 1
+000047 4050                      	sbci r21, 0
+000048 4060                      	sbci r22, 0
+000049 f7e0                      	brcc pc-3
                                  
-00003d 9508                      	ret
+00004a 9508                      	ret
                                  
                                  reset:
                                  	;Stack initialization
-00003e ef0f                      	ldi temp, low(RAMEND)
-00003f bf0d                      	out SPL, temp
-000040 e008                      	ldi temp, high(RAMEND)
-000041 bf0e                      	out SPH, temp
+00004b ef0f                      	ldi temp, low(RAMEND)
+00004c bf0d                      	out SPL, temp
+00004d e008                      	ldi temp, high(RAMEND)
+00004e bf0e                      	out SPH, temp
                                  	
                                  
                                  	#define CLOCK 16.0e6 ;clock speed
@@ -1087,61 +1107,55 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
                                  	.endif
                                  
                                  	;On MEGA series, write high byte of 16-bit timer registers first
-000042 ef04                      	ldi temp, high(TOP) ;initialize compare value (TOP)
-000043 9300 0089                 	sts OCR1AH, temp
-000045 e204                      	ldi temp, low(TOP)
-000046 9300 0088                 	sts OCR1AL, temp
-000048 e000                      	ldi temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
+00004f ef04                      	ldi temp, high(TOP) ;initialize compare value (TOP)
+000050 9300 0089                 	sts OCR1AH, temp
+000052 e204                      	ldi temp, low(TOP)
+000053 9300 0088                 	sts OCR1AL, temp
+000055 e000                      	ldi temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
                                  	; WGM&0b11 = 0b0100 & 0b0011 = 0b0000 
-000049 9300 0080                 	sts TCCR1A, temp
+000056 9300 0080                 	sts TCCR1A, temp
                                  	;upper 2 bits of WGM and clock select
-00004b e00c                      	ldi temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
+000058 e00c                      	ldi temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
                                  	; WGM >> 2 = 0b0100 >> 2 = 0b0001
                                  	; (WGM >> 2) << WGM12 = (0b0001 << 3) = 0b0001000
                                  	; (PRESCALE << CS10) = 0b100 << 0 = 0b100
                                  	; 0b0001000 | 0b100 = 0b0001100
-00004c 9300 0081                 	sts TCCR1B, temp ;start counter
+000059 9300 0081                 	sts TCCR1B, temp ;start counter
                                  
-00004e 9100 006f                 	lds r16, TIMSK1
-000050 6002                      	sbr r16, 1 <<OCIE1A
-000051 9300 006f                 	sts TIMSK1, r16
+00005b 9100 006f                 	lds r16, TIMSK1
+00005d 6002                      	sbr r16, 1 <<OCIE1A
+00005e 9300 006f                 	sts TIMSK1, r16
                                  
-000053 ef0f                      	ldi temp, 0xFF		;configure PORTB as output
-000054 b90a                      	out DDRD, temp
-000055 b904                      	out DDRB, temp
+000060 ef0f                      	ldi temp, 0xFF		;configure PORTB as output
+000061 b90a                      	out DDRD, temp
+000062 b904                      	out DDRB, temp
                                  
-000056 e000                      	ldi temp, 0
-000057 2e50                      	mov state, temp
-                                 
-000058 e3e0                      	ldi ZL, low(states*2)
-000059 e0f0                      	ldi ZH, high(states*2)
-00005a e000                      	ldi temp, 0
-00005b 2ef0                      	mov count, temp
-00005c 9005                      	lpm s1s2, Z+
-00005d 94f3                      	inc count
-00005e 9015                      	lpm s3s4, Z+
-00005f 94f3                      	inc count
-000060 9025                      	lpm time, Z+
-000061 94f3                      	inc count
+000063 e3e0                      	ldi ZL, low(states*2)
+000064 e0f0                      	ldi ZH, high(states*2)
+000065 e000                      	ldi temp, 0
+000066 2ef0                      	mov count, temp
+000067 9005                      	lpm s1s2, Z+
+000068 94f3                      	inc count
+000069 9015                      	lpm s3s4, Z+
+00006a 94f3                      	inc count
+00006b 9025                      	lpm time, Z+
+00006c 94f3                      	inc count
                                  
                                  
                                  
-000062 9478                      	sei
+00006d 9478                      	sei
                                  
                                  main:
-000063 e000                      	ldi temp, 0
-000064 e010                      	ldi leds, 0
-                                 	main_lp:
-000065 b80b                      	out PORTD, s1s2
-000066 b835                      	out PORTB, display0
+00006e b80b                      	out PORTD, s1s2
+00006f b835                      	out PORTB, display0
                                  
-000067 dfce                      	Rcall Delay5ms
-000068 b81b                      	out PORTD, s3s4
-000069 b845                      	out PORTB, display1
+000070 dfd2                      	Rcall Delay5ms
+000071 b81b                      	out PORTD, s3s4
+000072 b845                      	out PORTB, display1
                                  
-00006a dfcb                      	Rcall Delay5ms
+000073 dfcf                      	Rcall Delay5ms
                                  	
-00006b cff9                      	rjmp main_lp
+000074 cff9                      	rjmp main
                                  
 
 
@@ -1160,39 +1174,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   6 r0 :   3 r1 :   3 r2 :   4 r3 :   1 r4 :   1 
-r5 :   1 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   9 r16:  29 r17:   1 r18:   0 r19:   0 r20:   2 
+x  :   0 y  :   0 z  :   6 r0 :   3 r1 :   3 r2 :   5 r3 :   3 r4 :   4 
+r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
+r13:   0 r14:   0 r15:   9 r16:  36 r17:   0 r18:   0 r19:   0 r20:   2 
 r21:   2 r22:   2 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   2 r31:   2 
-Registers used: 15 out of 35 (42.9%)
+Registers used: 13 out of 35 (37.1%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   2 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
 brcc  :   1 brcs  :   0 break :   0 breq  :   1 brge  :   0 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   1 brmi  :   0 
 brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   2 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   1 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   6 jmp   :   2 
+cpi   :   1 cpse  :   0 dec   :   1 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   7 jmp   :   2 
 ld    :   0 ldd   :   0 ldi   :  21 lds   :   1 lpm   :   6 lsl   :   0 
-lsr   :   0 mov   :   3 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   8 pop   :   0 
-push  :   0 rcall :   2 ret   :   1 reti  :   1 rjmp  :   2 rol   :   0 
+push  :   0 rcall :   2 ret   :   1 reti  :   1 rjmp  :   3 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   2 sbi   :   0 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   1 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   5 
-sub   :   0 subi  :   1 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 21 out of 113 (18.6%)
+sub   :   0 subi  :   2 swap  :   0 tst   :   0 wdr   :   0 
+Instructions used: 24 out of 113 (21.2%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0000d8    154     22    176   32768   0.5%
+[.cseg] 0x000000 0x0000ea    172     22    194   32768   0.6%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
