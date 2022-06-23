@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Thu Jun 23 15:43:44 2022
+AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Thu Jun 23 17:14:21 2022
 
 
 EQU  SIGNATURE_000 0000001e
@@ -701,20 +701,20 @@ DEF  s3s4         r1
 DEF  time         r2
 DEF  display0     r3
 DEF  display1     r4
-DEF  count        r15
-CSEG reset        0000004b
+DEF  count        r5
+CSEG reset        0000004a
 CSEG OCI1A_Interrupt 00000023
 CSEG states       00000018
-CSEG next_state   00000028
-CSEG exiting_intr 00000035
-CSEG update_state 0000002f
-CSEG splitDigits  00000038
-CSEG dig0         0000003d
+CSEG no_update    00000034
+CSEG next_state   00000027
+CSEG update_state 0000002e
+CSEG splitDigits  00000037
+CSEG dig0         0000003c
 EQU  ClockMHz     00000010
 EQU  DelayMs      00000005
-CSEG Delay5ms     00000043
+CSEG Delay5ms     00000042
 EQU  PRESCALE     00000004
 EQU  PRESCALE_DIV 00000100
 EQU  WGM          00000004
 EQU  TOP          0000f424
-CSEG main         0000006e
+CSEG main         0000006d

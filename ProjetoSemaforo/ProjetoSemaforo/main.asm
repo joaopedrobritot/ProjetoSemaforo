@@ -31,7 +31,7 @@
 .cseg
 ;Colocando a interrupção de reset na primeira posição da memória de programa
 jmp reset
-;Colocando a interrupção Timer de 1 segundo na posição OC1Aaddr
+;Colocando a interrupção Delay de 1 segundo na posição OC1Aaddr
 .org OC1Aaddr
 jmp OCI1A_Interrupt
 
@@ -61,46 +61,65 @@ T: Tempo até o próximo estado
 */
 
 ;			  t1,s1,s2    t2,s3,s4    Tempo
-states: .db 0b01001100, 0b10100001, 0b00010100, \ ; Estado 1: s1:R / s2:G / s3:G / s4:R / T:20s
-			0b01001100, 0b10100010, 0b00000100, \ ; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s
-			0b01001100, 0b10001100, 0b00110100, \ ; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s
-			0b01010100, 0b10010100, 0b00000100, \ ; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s
-			0b01100001, 0b10100100, 0b00010100, \ ; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s
-			0b01100010, 0b10100100, 0b00000100, \ ; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s
-			0b01100100, 0b10100100, 0b00010100, \ ; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s
-			0b00000000 \ ; padding para completar a palavra na memória
+states: .db 0b01001100, 0b10100001, 0b00010100, /*; Estado 1: s1:R / s2:G / s3:G / s4:R / T:20s */ \
+			0b01001100, 0b10100010, 0b00000100, /*; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s */ \
+			0b01001100, 0b10001100, 0b00110100, /*; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s */ \
+			0b01010100, 0b10010100, 0b00000100, /*; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s */ \
+			0b01100001, 0b10100100, 0b00010100, /*; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s */ \
+			0b01100010, 0b10100100, 0b00000100, /*; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s */ \
+			0b01100100, 0b10100100, 0b00010100, /*; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s */ \
+			0b00000000 /*; padding para completar a palavra na memória */ \
 
-
+; Interrupção do Delay de 1
 OCI1A_Interrupt:
 	;TODO STACK
 
+	; a cada 1 segundo, time é decrementado em 1
 	dec time
+
+	; Verifica se o tempo até o próximo estado é zero, se sim ele deve avançar para o próximo estado
 	ldi temp, 0
 	cp time, temp
-	breq next_state
-	rjmp exiting_intr
+	brne no_update; Se for diferente ele não altera o estado atual e vai atualizar o display
+
+	/*
+	Antes de avançar para o próximo estado é feita a verificação para saber se já está no último estado.
+	Essa verficação ocorre da seguinte maneira:
+	Somando todos os estados armazenados na memória, temos 21 bytes, e para cada estado 'count' é incrementado em 3
+	Então quando 'count' for igual a 21 estaremos no último estado e o próximo estado será o inicial
+	*/
 
 	next_state:
+		; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
 		ldi temp, 21
 		cp count, temp
-		brne update_state
+		brne update_state ; Avança o estado
+
+		; Volta para o estado inicial
+		; Z será usado para receber as informações do estados
 		ldi ZL, low(states*2)
 		ldi ZH, high(states*2)
+		; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
 		ldi temp, 0
 		mov count, temp
-	update_state:
-		lpm s1s2, Z+
-		inc count
-		lpm s3s4, Z+
-		inc count
-		lpm time, Z+
-		inc count
-	exiting_intr:
+
+		; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+		; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
+		;					receber os dados do estado 1)
+		update_state:
+			lpm s1s2, Z+
+			inc count
+			lpm s3s4, Z+
+			inc count
+			lpm time, Z+
+			inc count
+
+
+	no_update:
 
 		ldi temp, 0
 		mov display1, temp
 		mov temp, time
-		
 
 	splitDigits:
 
@@ -189,8 +208,6 @@ reset:
 	inc count
 	lpm time, Z+
 	inc count
-
-
 
 	sei
 

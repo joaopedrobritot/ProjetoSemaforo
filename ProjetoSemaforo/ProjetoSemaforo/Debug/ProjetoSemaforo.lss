@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Thu Jun 23 15:43:44 2022
+AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\ProjetoSemaforo\main.asm Thu Jun 23 17:14:21 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
@@ -994,106 +994,162 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
                                  ;		   Matheus Gêda
                                  ;
                                  
+                                 ; registrador utilizado para operações temporárias
                                  .def temp = r16
                                  
+                                 /*
+                                  s1, s2, s3 e s4 são, respectivamente, os semáforos 1, 2, 3 e 4 (no circuito a ordem é de baixo para cima)
+                                 */
                                  .def s1s2 = r0
                                  .def s3s4 = r1
+                                 
+                                 ; Registrador time será responsável por armazenar o tempo até o próximo estado (4s, 20s ou 52s)
                                  .def time = r2
+                                 
+                                 ;Display 0 é o display de 7-seg que representa as unidades, enquanto o Display 1 representa o display dos decimais
                                  .def display0 = r3
                                  .def display1 = r4
                                  
+                                 ; Registrador count é responsável por contar (lógicamente) o endereço de memória dos estados (explicação abaixo)
+                                 .def count = r5
                                  
-                                 .def count = r15
+                                 
                                  .cseg
-                                 
-000000 940c 004b                 jmp reset
+                                 ;Colocando a interrupção de reset na primeira posição da memória de programa
+000000 940c 004a                 jmp reset
+                                 ;Colocando a interrupção Delay de 1 segundo na posição OC1Aaddr
                                  .org OC1Aaddr
 000016 940c 0023                 jmp OCI1A_Interrupt
                                  
-                                 ;			t1: s1,s2   t2: s3,s4     Tempo
-000018 a14c                      states: .db 0b01001100, 0b10100001, 0b00010100, \
-000019 4c14                      			0b01001100, 0b10100010, 0b00000100, \
-00001a 04a2
-00001b 8c4c                      			0b01001100, 0b10001100, 0b00110100, \
-00001c 5434                      			0b01010100, 0b10010100, 0b00000100, \
-00001d 0494
-00001e a461                      			0b01100001, 0b10100100, 0b00010100, \
-00001f 6214                      			0b01100010, 0b10100100, 0b00000100, \
-000020 04a4
-000021 a464                      			0b01100100, 0b10100100, 0b00010100, 0b00000000 \
-000022 0014                      
+                                 ; Todo o código foi armazenado na memória após a interrupção Timer
                                  
+                                 
+                                 /* 
+                                 Primeiramente foi armazenado na memória de programa as informações dos estados, essas informações são descritas
+                                 da seguinte forma:
+                                 
+                                 Um estado é representado por 3 bytes, onde:
+                                 - O 1º byte tem: 2 bits que selecionam o primeiro transistor e 3 bits para cada um dos dois primeiros semáforos (s1 e s2)
+                                 - O 2º byte tem: 2 bits selecionando o segundo transistor e 3 bits para cada um dos dois últimos semáforos (s3 e s4)
+                                 - O 3º byte é responsável por armazenar o tempo necessário para ir ao próximo estado
+                                 
+                                 Exemplos: 0b01001010 -> 01 selecionam o primeiro transistor (semáforos s1 e s2) 001 acende o sinal verde para s1
+                                 						e 010 que acende o sinal amarelo para s2
+                                 		  0b10100001 -> 10 selecionam o segundo transistor (semáforos s1 e s2) 100 acende o sinal vermelho para s3
+                                 						e 001 que acende o sinal verde para s4
+                                 
+                                 t1, t2: transistores 1 e 2
+                                 s1,s2,s3,s4: semáforos 1,2,3 e 4
+                                 R: sinal vermelho
+                                 G: verde
+                                 Y: amarelo
+                                 T: Tempo até o próximo estado
+                                 */
+                                 
+                                 ;			  t1,s1,s2    t2,s3,s4    Tempo
+000018 a14c                      states: .db 0b01001100, 0b10100001, 0b00010100, /*; Estado 1: s1:R / s2:G / s3:G / s4:R / T:20s */ \
+000019 4c14                      			0b01001100, 0b10100010, 0b00000100, /*; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s */ \
+00001a 04a2
+00001b 8c4c                      			0b01001100, 0b10001100, 0b00110100, /*; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s */ \
+00001c 5434                      			0b01010100, 0b10010100, 0b00000100, /*; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s */ \
+00001d 0494
+00001e a461                      			0b01100001, 0b10100100, 0b00010100, /*; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s */ \
+00001f 6214                      			0b01100010, 0b10100100, 0b00000100, /*; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s */ \
+000020 04a4
+000021 a464                      			0b01100100, 0b10100100, 0b00010100, /*; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s */ \
+                                 			0b00000000 /*; padding para completar a palavra na memória */ \
+000022 0014                      
+                                 ; Interrupção do Delay de 1
                                  OCI1A_Interrupt:
                                  	;TODO STACK
                                  
+                                 	; a cada 1 segundo, time é decrementado em 1
 000023 942a                      	dec time
+                                 
+                                 	; Verifica se o tempo até o próximo estado é zero, se sim ele deve avançar para o próximo estado
 000024 e000                      	ldi temp, 0
 000025 1620                      	cp time, temp
-000026 f009                      	breq next_state
-000027 c00d                      	rjmp exiting_intr
+000026 f469                      	brne no_update; Se for diferente ele não altera o estado atual e vai atualizar o display
+                                 
+                                 	/*
+                                 	Antes de avançar para o próximo estado é feita a verificação para saber se já está no último estado.
+                                 	Essa verficação ocorre da seguinte maneira:
+                                 	Somando todos os estados armazenados na memória, temos 21 bytes, e para cada estado 'count' é incrementado em 3
+                                 	Então quando 'count' for igual a 21 estaremos no último estado e o próximo estado será o inicial
+                                 	*/
                                  
                                  	next_state:
-000028 e105                      		ldi temp, 21
-000029 16f0                      		cp count, temp
-00002a f421                      		brne update_state
-00002b e3e0                      		ldi ZL, low(states*2)
-00002c e0f0                      		ldi ZH, high(states*2)
-00002d e000                      		ldi temp, 0
-00002e 2ef0                      		mov count, temp
-                                 	update_state:
-00002f 9005                      		lpm s1s2, Z+
-000030 94f3                      		inc count
-000031 9015                      		lpm s3s4, Z+
-000032 94f3                      		inc count
-000033 9025                      		lpm time, Z+
-000034 94f3                      		inc count
-                                 	exiting_intr:
+                                 		; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
+000027 e105                      		ldi temp, 21
+000028 1650                      		cp count, temp
+000029 f421                      		brne update_state ; Avança o estado
                                  
-000035 e000                      		ldi temp, 0
-000036 2e40                      		mov display1, temp
-000037 2d02                      		mov temp, time
-                                 		
+                                 		; Volta para o estado inicial
+                                 		; Z será usado para receber as informações do estados
+00002a e3e0                      		ldi ZL, low(states*2)
+00002b e0f0                      		ldi ZH, high(states*2)
+                                 		; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
+00002c e000                      		ldi temp, 0
+00002d 2e50                      		mov count, temp
+                                 
+                                 		; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+                                 		; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
+                                 		;					receber os dados do estado 1)
+                                 		update_state:
+00002e 9005                      			lpm s1s2, Z+
+00002f 9453                      			inc count
+000030 9015                      			lpm s3s4, Z+
+000031 9453                      			inc count
+000032 9025                      			lpm time, Z+
+000033 9453                      			inc count
+                                 
+                                 
+                                 	no_update:
+                                 
+000034 e000                      		ldi temp, 0
+000035 2e40                      		mov display1, temp
+000036 2d02                      		mov temp, time
                                  
                                  	splitDigits:
                                  
-000038 300a                      		cpi temp, 10
-000039 f01c                      		brlt dig0
-00003a 9443                      		inc display1
-00003b 500a                      		subi temp, 10
-00003c cffb                      		rjmp splitDigits
+000037 300a                      		cpi temp, 10
+000038 f01c                      		brlt dig0
+000039 9443                      		inc display1
+00003a 500a                      		subi temp, 10
+00003b cffb                      		rjmp splitDigits
                                  
                                  		dig0:
-00003d 2e30                      		mov display0, temp
+00003c 2e30                      		mov display0, temp
                                  
-00003e e200                      		ldi temp, 0b00100000
-00003f 0e40                      		add display1, temp
-000040 e100                      		ldi temp, 0b00010000
-000041 0e30                      		add display0, temp
+00003d e200                      		ldi temp, 0b00100000
+00003e 0e40                      		add display1, temp
+00003f e100                      		ldi temp, 0b00010000
+000040 0e30                      		add display0, temp
                                  
                                  
                                  		;TODO STACK
-000042 9518                      	reti
+000041 9518                      	reti
                                  
                                  .equ ClockMHz = 16
                                  .equ DelayMs = 5
                                  Delay5ms:
-000043 e060                      	ldi r22, byte3(ClockMHz * 1000 * DelayMs / 5)
-000044 e35e                      	ldi r21, high(ClockMHz * 1000 * DelayMs / 5)
-000045 e840                      	ldi r20, low(ClockMHz * 1000 * DelayMs / 5)
+000042 e060                      	ldi r22, byte3(ClockMHz * 1000 * DelayMs / 5)
+000043 e35e                      	ldi r21, high(ClockMHz * 1000 * DelayMs / 5)
+000044 e840                      	ldi r20, low(ClockMHz * 1000 * DelayMs / 5)
                                  
-000046 5041                      	subi r20, 1
-000047 4050                      	sbci r21, 0
-000048 4060                      	sbci r22, 0
-000049 f7e0                      	brcc pc-3
+000045 5041                      	subi r20, 1
+000046 4050                      	sbci r21, 0
+000047 4060                      	sbci r22, 0
+000048 f7e0                      	brcc pc-3
                                  
-00004a 9508                      	ret
+000049 9508                      	ret
                                  
                                  reset:
                                  	;Stack initialization
-00004b ef0f                      	ldi temp, low(RAMEND)
-00004c bf0d                      	out SPL, temp
-00004d e008                      	ldi temp, high(RAMEND)
-00004e bf0e                      	out SPH, temp
+00004a ef0f                      	ldi temp, low(RAMEND)
+00004b bf0d                      	out SPL, temp
+00004c e008                      	ldi temp, high(RAMEND)
+00004d bf0e                      	out SPH, temp
                                  	
                                  
                                  	#define CLOCK 16.0e6 ;clock speed
@@ -1107,55 +1163,53 @@ AVRASM ver. 2.2.7  C:\Users\alunoic\Desktop\ProjetoSemaforo\ProjetoSemaforo\Proj
                                  	.endif
                                  
                                  	;On MEGA series, write high byte of 16-bit timer registers first
-00004f ef04                      	ldi temp, high(TOP) ;initialize compare value (TOP)
-000050 9300 0089                 	sts OCR1AH, temp
-000052 e204                      	ldi temp, low(TOP)
-000053 9300 0088                 	sts OCR1AL, temp
-000055 e000                      	ldi temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
+00004e ef04                      	ldi temp, high(TOP) ;initialize compare value (TOP)
+00004f 9300 0089                 	sts OCR1AH, temp
+000051 e204                      	ldi temp, low(TOP)
+000052 9300 0088                 	sts OCR1AL, temp
+000054 e000                      	ldi temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
                                  	; WGM&0b11 = 0b0100 & 0b0011 = 0b0000 
-000056 9300 0080                 	sts TCCR1A, temp
+000055 9300 0080                 	sts TCCR1A, temp
                                  	;upper 2 bits of WGM and clock select
-000058 e00c                      	ldi temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
+000057 e00c                      	ldi temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
                                  	; WGM >> 2 = 0b0100 >> 2 = 0b0001
                                  	; (WGM >> 2) << WGM12 = (0b0001 << 3) = 0b0001000
                                  	; (PRESCALE << CS10) = 0b100 << 0 = 0b100
                                  	; 0b0001000 | 0b100 = 0b0001100
-000059 9300 0081                 	sts TCCR1B, temp ;start counter
+000058 9300 0081                 	sts TCCR1B, temp ;start counter
                                  
-00005b 9100 006f                 	lds r16, TIMSK1
-00005d 6002                      	sbr r16, 1 <<OCIE1A
-00005e 9300 006f                 	sts TIMSK1, r16
+00005a 9100 006f                 	lds r16, TIMSK1
+00005c 6002                      	sbr r16, 1 <<OCIE1A
+00005d 9300 006f                 	sts TIMSK1, r16
                                  
-000060 ef0f                      	ldi temp, 0xFF		;configure PORTB as output
-000061 b90a                      	out DDRD, temp
-000062 b904                      	out DDRB, temp
+00005f ef0f                      	ldi temp, 0xFF		;configure PORTB as output
+000060 b90a                      	out DDRD, temp
+000061 b904                      	out DDRB, temp
                                  
-000063 e3e0                      	ldi ZL, low(states*2)
-000064 e0f0                      	ldi ZH, high(states*2)
-000065 e000                      	ldi temp, 0
-000066 2ef0                      	mov count, temp
-000067 9005                      	lpm s1s2, Z+
-000068 94f3                      	inc count
-000069 9015                      	lpm s3s4, Z+
-00006a 94f3                      	inc count
-00006b 9025                      	lpm time, Z+
-00006c 94f3                      	inc count
+000062 e3e0                      	ldi ZL, low(states*2)
+000063 e0f0                      	ldi ZH, high(states*2)
+000064 e000                      	ldi temp, 0
+000065 2e50                      	mov count, temp
+000066 9005                      	lpm s1s2, Z+
+000067 9453                      	inc count
+000068 9015                      	lpm s3s4, Z+
+000069 9453                      	inc count
+00006a 9025                      	lpm time, Z+
+00006b 9453                      	inc count
                                  
-                                 
-                                 
-00006d 9478                      	sei
+00006c 9478                      	sei
                                  
                                  main:
-00006e b80b                      	out PORTD, s1s2
-00006f b835                      	out PORTB, display0
+00006d b80b                      	out PORTD, s1s2
+00006e b835                      	out PORTB, display0
                                  
-000070 dfd2                      	Rcall Delay5ms
-000071 b81b                      	out PORTD, s3s4
-000072 b845                      	out PORTB, display1
+00006f dfd2                      	Rcall Delay5ms
+000070 b81b                      	out PORTD, s3s4
+000071 b845                      	out PORTB, display1
                                  
-000073 dfcf                      	Rcall Delay5ms
+000072 dfcf                      	Rcall Delay5ms
                                  	
-000074 cff9                      	rjmp main
+000073 cff9                      	rjmp main
                                  
 
 
@@ -1175,8 +1229,8 @@ counted separately from r26..r31 here.
 
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   6 r0 :   3 r1 :   3 r2 :   5 r3 :   3 r4 :   4 
-r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   9 r16:  36 r17:   0 r18:   0 r19:   0 r20:   2 
+r5 :   9 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
+r13:   0 r14:   0 r15:   0 r16:  36 r17:   0 r18:   0 r19:   0 r20:   2 
 r21:   2 r22:   2 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   2 r31:   2 
 Registers used: 13 out of 35 (37.1%)
@@ -1184,9 +1238,9 @@ Registers used: 13 out of 35 (37.1%)
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   2 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   1 brcs  :   0 break :   0 breq  :   1 brge  :   0 brhc  :   0 
+brcc  :   1 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   1 brmi  :   0 
-brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brne  :   2 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   2 cpc   :   0 
@@ -1195,18 +1249,18 @@ fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   7 jmp   :   2
 ld    :   0 ldd   :   0 ldi   :  21 lds   :   1 lpm   :   6 lsl   :   0 
 lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   8 pop   :   0 
-push  :   0 rcall :   2 ret   :   1 reti  :   1 rjmp  :   3 rol   :   0 
+push  :   0 rcall :   2 ret   :   1 reti  :   1 rjmp  :   2 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   2 sbi   :   0 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   1 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   5 
 sub   :   0 subi  :   2 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 24 out of 113 (21.2%)
+Instructions used: 23 out of 113 (20.4%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0000ea    172     22    194   32768   0.6%
+[.cseg] 0x000000 0x0000e8    170     22    192   32768   0.6%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
