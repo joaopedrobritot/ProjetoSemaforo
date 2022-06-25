@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm Fri Jun 24 22:07:09 2022
+AVRASM ver. 2.2.8  C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm Sat Jun 25 00:25:08 2022
 
 
 EQU  SIGNATURE_000 0000001e
@@ -702,21 +702,22 @@ DEF  time         r2
 DEF  display0     r3
 DEF  display1     r4
 DEF  count        r5
-CSEG reset        00000050
+CSEG reset        00000058
 CSEG OCI1A_Interrupt 00000023
 CSEG states       00000018
-CSEG no_update    00000037
-CSEG next_state   0000002a
-CSEG update_state 00000031
-CSEG splitDigits  0000003a
-CSEG dig0         0000003f
+CSEG no_update    0000002b
+CSEG NextState    0000003e
+CSEG SplitDig     00000030
+CSEG splitDigits  00000033
+CSEG digit0       00000038
+CSEG update_state 00000042
+CSEG ResetPointer 00000044
+CSEG UpdateState  00000049
 EQU  ClockMHz     00000010
 EQU  DelayMs      00000005
-CSEG Delay5ms     00000048
+CSEG Delay5ms     00000050
 EQU  PRESCALE     00000004
 EQU  PRESCALE_DIV 00000100
 EQU  WGM          00000004
 EQU  TOP          0000f424
-CSEG splDigits    00000075
-CSEG digi0        0000007a
-CSEG main         00000080
+CSEG main         00000074

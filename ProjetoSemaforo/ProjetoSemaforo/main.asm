@@ -12,7 +12,7 @@
 .def temp = r16
 
 /*
- s1, s2, s3 e s4 são, respectivamente, os semáforos 1, 2, 3 e 4 (no circuito a ordem é de baixo para cima)
+ s1, s2, s3 e s4 são, respectivamente, os semáforos 1, 2, 3 e 4 (no circuito a ordem é de baixo para cima na protoboard)
 */
 .def s1s2 = r0
 .def s3s4 = r1
@@ -20,7 +20,7 @@
 ; Registrador time será responsável por armazenar o tempo até o próximo estado (4s, 20s ou 52s)
 .def time = r2
 
-;Display 0 é o display de 7-seg que representa as unidades, enquanto o Display 1 representa o display dos decimais
+;Display 0 é o display de 7-seg que representa as unidades, enquanto o Display 1 representa o display das dezenas
 .def display0 = r3
 .def display1 = r4
 
@@ -30,10 +30,10 @@
 
 .cseg
 ;Colocando a interrupção de reset na primeira posição da memória de programa
-jmp reset
+JMP reset
 ;Colocando a interrupção Delay de 1 segundo na posição OC1Aaddr
 .org OC1Aaddr
-jmp OCI1A_Interrupt
+JMP OCI1A_Interrupt
 
 ; Todo o código foi armazenado na memória após a interrupção Timer
 
@@ -72,18 +72,18 @@ states: .db 0b01001100, 0b10100001, 0b00010100, /*; Estado 1: s1:R / s2:G / s3:G
 
 ; Interrupção do Delay de 1
 OCI1A_Interrupt:
+	;Salvando o contexto
+	PUSH temp ;Salvando r16(temp) na pilha 				
+	IN temp, SREG ;Colocando o conteúdo de SREG (Status Register) em temp			
+	PUSH temp ; Salvando o conteúdo de SREG que está em temp na pilha.
 
-	push temp ;Salvando r16(temp) na pilha 				
-	in temp, SREG ;Colocando o conteúdo de SREG (Status Register) em temp			
-	push temp ; Salvando o conteúdo de SREG que está em temp na pilha.				
-	
 	; a cada 1 segundo, time é decrementado em 1
-	dec time
+	DEC time
 
 	; Verifica se o tempo até o próximo estado é zero, se sim ele deve avançar para o próximo estado
-	ldi temp, 0
-	cp time, temp
-	brne no_update; Se for diferente ele não altera o estado atual e vai atualizar o display
+	LDI temp, 0
+	CP time, temp
+	BRNE no_update; Se for diferente ele não altera o estado atual e vai atualizar o display
 
 	/*
 	Antes de avançar para o próximo estado é feita a verificação para saber se já está no último estado.
@@ -92,82 +92,97 @@ OCI1A_Interrupt:
 	Então quando 'count' for igual a 21 estaremos no último estado e o próximo estado será o inicial
 	*/
 
-	next_state:
-		; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
-		ldi temp, 21
-		cp count, temp
-		brne update_state ; Avança o estado
-
-		; Volta para o estado inicial
-		; Z será usado para receber as informações do estados
-		ldi ZL, low(states*2)
-		ldi ZH, high(states*2)
-		; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
-		ldi temp, 0
-		mov count, temp
-
-		; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
-		; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
-		;					receber os dados do estado 1)
-		update_state:
-			lpm s1s2, Z+
-			inc count
-			lpm s3s4, Z+
-			inc count
-			lpm time, Z+
-			inc count
-
-
+	RCALL NextState
+	
 	no_update:
+		RCALL SplitDig
+	;Recuperando o contexto
+	POP temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
+	OUT SREG, temp ;Recuperando o contexto de SREG que estava na pilha para sair da interrução
+	POP temp ; Recuperando o valor de temp anterior a interrupção.
 
-		ldi temp, 0
-		mov display1, temp
-		mov temp, time
+	RETI
 
-	splitDigits:
-
-		cpi temp, 10
-		brlt dig0
-		inc display1
-		subi temp, 10
-		rjmp splitDigits
-
-		dig0:
-		mov display0, temp
-
-		ldi temp, 0b00100000
-		add display1, temp
-		ldi temp, 0b00010000
-		add display0, temp
+SplitDig:
+			LDI temp, 0
+			MOV display1, temp
+			MOV temp, time
 		
-	pop temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
-	out SREG, temp ;Recuperando o contexto de SREG que estava na pilha para sair da interrução
-	pop temp ; Recuperando o valor de temp anterior a interrupção.
+		splitDigits:
+			CPI temp, 10
+			BRLT digit0
+			INC display1
+			SUBI temp, 10
+			RJMP splitDigits
 
-	reti
+			digit0:
+			MOV display0, temp
+
+			LDI temp, 0b00100000
+			ADD display1, temp
+			LDI temp, 0b00010000
+			ADD display0, temp
+RET
+
+NextState:
+
+			; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
+			LDI temp, 21
+			CP count, temp
+			BRNE update_state ; Avança o estado
+			
+			RCALL ResetPointer
+
+			; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+			; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
+			;					receber os dados do estado 1)
+			update_state:
+
+			RCALL UpdateState
+RET
+
+ResetPointer:
+
+			; Volta para o estado inicial
+			; Z será usado para receber as informações do estados
+			LDI ZL, low(states*2)
+			LDI ZH, high(states*2)
+			; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
+			LDI temp, 0
+			MOV count, temp
+RET
+
+UpdateState:
+				LPM s1s2, Z+
+				INC count
+				LPM s3s4, Z+
+				INC count
+				LPM time, Z+
+				INC count
+RET
+
 
 .equ ClockMHz = 16
 .equ DelayMs = 5
 Delay5ms:
-	ldi r22, byte3(ClockMHz * 1000 * DelayMs / 5)
-	ldi r21, high(ClockMHz * 1000 * DelayMs / 5)
-	ldi r20, low(ClockMHz * 1000 * DelayMs / 5)
+	LDI r22, byte3(ClockMHz * 1000 * DelayMs / 5)
+	LDI r21, high(ClockMHz * 1000 * DelayMs / 5)
+	LDI r20, low(ClockMHz * 1000 * DelayMs / 5)
 
-	subi r20, 1
-	sbci r21, 0
-	sbci r22, 0
-	brcc pc-3
+	SUBI r20, 1
+	SBCI r21, 0
+	SBCI r22, 0
+	BRCC pc-3
 
-	ret
+	RET
 
 reset:
 	;Stack initialization
-	ldi temp, low(RAMEND)
-	out SPL, temp
-	ldi temp, high(RAMEND)
-	out SPH, temp
+	LDI temp, low(RAMEND)
+	OUT SPL, temp
+	LDI temp, high(RAMEND)
+	OUT SPH, temp
 	
-
 	#define CLOCK 16.0e6 ;clock speed
 	#define DELAY 1.0 ;seconds
 	.equ PRESCALE = 0b100 ;/128 prescale
@@ -180,71 +195,42 @@ reset:
 	.endif
 
 	;On MEGA series, write high byte of 16-bit timer registers first
-	ldi temp, high(TOP) ;initialize compare value (TOP)
-	sts OCR1AH, temp
-	ldi temp, low(TOP)
-	sts OCR1AL, temp
-	ldi temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
+	LDI temp, high(TOP) ;initialize compare value (TOP)
+	STS OCR1AH, temp
+	LDI temp, low(TOP)
+	STS OCR1AL, temp
+	LDI temp, ((WGM&0b11) << WGM10) ;lower 2 bits of WGM
 	; WGM&0b11 = 0b0100 & 0b0011 = 0b0000 
-	sts TCCR1A, temp
+	STS TCCR1A, temp
 	;upper 2 bits of WGM and clock select
-	ldi temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
+	LDI temp, ((WGM>> 2) << WGM12)|(PRESCALE << CS10)
 	; WGM >> 2 = 0b0100 >> 2 = 0b0001
 	; (WGM >> 2) << WGM12 = (0b0001 << 3) = 0b0001000
 	; (PRESCALE << CS10) = 0b100 << 0 = 0b100
 	; 0b0001000 | 0b100 = 0b0001100
-	sts TCCR1B, temp ;start counter
+	STS TCCR1B, temp ;start counter
 
-	lds r16, TIMSK1
-	sbr r16, 1 <<OCIE1A
-	sts TIMSK1, r16
+	LDS r16, TIMSK1
+	SBR r16, 1 <<OCIE1A
+	STS TIMSK1, r16
 
-	ldi temp, 0xFF		;configure PORTB as output
-	out DDRD, temp
-	out DDRB, temp
+	LDI temp, 0xFF		;configure PORTB and PORTD as output
+	OUT DDRD, temp
+	OUT DDRB, temp
 
-	ldi ZL, low(states*2)
-	ldi ZH, high(states*2)
-	ldi temp, 0
-	mov count, temp
-	lpm s1s2, Z+
-	inc count
-	lpm s3s4, Z+
-	inc count
-	lpm time, Z+
-	inc count
+	RCALL ResetPointer
+	RCALL UpdateState
+	RCALL SplitDig
 
-	ldi temp, 0
-		mov display1, temp
-		mov temp, time
-
-	splDigits:
-
-		cpi temp, 10
-		brlt digi0
-		inc display1
-		subi temp, 10
-		rjmp splDigits
-
-		digi0:
-		mov display0, temp
-
-		ldi temp, 0b00100000
-		add display1, temp
-		ldi temp, 0b00010000
-		add display0, temp
-
-	sei
+	SEI
 
 main:
-	out PORTD, s1s2
-	out PORTB, display0
+	OUT PORTD, s1s2
+	OUT PORTB, display0
+	RCALL Delay5ms
 
-	Rcall Delay5ms
-	out PORTD, s3s4
-	out PORTB, display1
-
-	Rcall Delay5ms
+	OUT PORTD, s3s4
+	OUT PORTB, display1
+	RCALL Delay5ms
 	
-	rjmp main
-
+	RJMP main

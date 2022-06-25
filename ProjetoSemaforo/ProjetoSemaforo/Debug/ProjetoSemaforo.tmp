@@ -1,18 +1,18 @@
 <ASSEMBLER_INFO>
  <VERSION>2.2.8</VERSION>
  <DEVICE>"ATmega328P"</DEVICE>
- <WORKING_DIR>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\Debug</WORKING_DIR>
+ <WORKING_DIR>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\Debug</WORKING_DIR>
  <INCLUDE_PATH>
   <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc</DIR>
   <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
   <DIR></DIR>
  </INCLUDE_PATH>
- <SOURCE_FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</SOURCE_FILE>
+ <SOURCE_FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</SOURCE_FILE>
  <INCLUDED_FILES>
   <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc</FILE>
  </INCLUDED_FILES>
  <OBJECT_FILES>
-  <FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\Debug\ProjetoSemaforo.obj</FILE>
+  <FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\Debug\ProjetoSemaforo.obj</FILE>
  </OBJECT_FILES>
  <HEX_FILES>
   <FILE>ProjetoSemaforo.hex</FILE>
@@ -22,17 +22,18 @@
   <FILE>ProjetoSemaforo.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <reset><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>163</LINE></reset>
-  <OCI1A_Interrupt><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>74</LINE></OCI1A_Interrupt>
-  <states><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>64</LINE></states>
-  <no_update><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>121</LINE></no_update>
-  <next_state><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>95</LINE></next_state>
-  <update_state><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>112</LINE></update_state>
-  <splitDigits><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>127</LINE></splitDigits>
-  <dig0><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>135</LINE></dig0>
-  <Delay5ms><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>151</LINE></Delay5ms>
-  <splDigits><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>221</LINE></splDigits>
-  <digi0><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>229</LINE></digi0>
-  <main><FILE>C:\Users\derek\Downloads\ProjetoSemaforo-main\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>239</LINE></main>
+  <reset><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>179</LINE></reset>
+  <OCI1A_Interrupt><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>74</LINE></OCI1A_Interrupt>
+  <states><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>64</LINE></states>
+  <no_update><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>97</LINE></no_update>
+  <NextState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>127</LINE></NextState>
+  <SplitDig><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>106</LINE></SplitDig>
+  <splitDigits><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>111</LINE></splitDigits>
+  <digit0><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>118</LINE></digit0>
+  <update_state><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>139</LINE></update_state>
+  <ResetPointer><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>144</LINE></ResetPointer>
+  <UpdateState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>155</LINE></UpdateState>
+  <Delay5ms><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>167</LINE></Delay5ms>
+  <main><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>227</LINE></main>
  </LABELS>
 </ASSEMBLER_INFO>
