@@ -72,8 +72,11 @@ states: .db 0b01001100, 0b10100001, 0b00010100, /*; Estado 1: s1:R / s2:G / s3:G
 
 ; Interrupção do Delay de 1
 OCI1A_Interrupt:
-	;TODO STACK
 
+	push temp ;Salvando r16(temp) na pilha 				
+	in temp, SREG ;Colocando o conteúdo de SREG (Status Register) em temp			
+	push temp ; Salvando o conteúdo de SREG que está em temp na pilha.				
+	
 	; a cada 1 segundo, time é decrementado em 1
 	dec time
 
@@ -136,9 +139,11 @@ OCI1A_Interrupt:
 		add display1, temp
 		ldi temp, 0b00010000
 		add display0, temp
+		
+	pop temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
+	out SREG, temp ;Recuperando o contexto de SREG que estava na pilha para sair da interrução
+	pop temp ; Recuperando o valor de temp anterior a interrupção.
 
-
-		;TODO STACK
 	reti
 
 .equ ClockMHz = 16
@@ -208,6 +213,26 @@ reset:
 	inc count
 	lpm time, Z+
 	inc count
+
+	ldi temp, 0
+		mov display1, temp
+		mov temp, time
+
+	splDigits:
+
+		cpi temp, 10
+		brlt digi0
+		inc display1
+		subi temp, 10
+		rjmp splDigits
+
+		digi0:
+		mov display0, temp
+
+		ldi temp, 0b00100000
+		add display1, temp
+		ldi temp, 0b00010000
+		add display0, temp
 
 	sei
 
