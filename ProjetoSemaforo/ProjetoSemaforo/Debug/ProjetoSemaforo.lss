@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm Sat Jun 25 00:25:08 2022
+AVRASM ver. 2.2.8  C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm Sun Jun 26 21:18:35 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\avrasm\inc\m328pdef.inc'
@@ -1081,97 +1081,100 @@ AVRASM ver. 2.2.8  C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\P
                                  	Então quando 'count' for igual a 21 estaremos no último estado e o próximo estado será o inicial
                                  	*/
                                  
-00002a d013                      	RCALL NextState
+00002a d013                      	RCALL NextState ;Rotina para atualizar o estado
                                  	
                                  	no_update:
-00002b d004                      		RCALL SplitDig
+00002b d004                      		RCALL SplitDig ; Rotina para separar os dígitos e colocar os digitos nos registradores espécíficos para cada dígito
+                                 
                                  	;Recuperando o contexto
 00002c 910f                      	POP temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
 00002d bf0f                      	OUT SREG, temp ;Recuperando o contexto de SREG que estava na pilha para sair da interrução
 00002e 910f                      	POP temp ; Recuperando o valor de temp anterior a interrupção.
                                  
-00002f 9518                      	RETI
+00002f 9518                      	RETI ; Retorno da interrupção
                                  
+                                 /*Rotina para dividir os dígitos, a rotina funciona decrementando dezenas e incrementando o digito mais 
+                                 significativo até que o valor seja menor que 10, sendo o valor restante o digito menos significativo.
+                                 */
                                  SplitDig:
-000030 e000                      			LDI temp, 0
-000031 2e40                      			MOV display1, temp
-000032 2d02                      			MOV temp, time
-                                 		
-                                 		splitDigits:
-000033 300a                      			CPI temp, 10
-000034 f01c                      			BRLT digit0
-000035 9443                      			INC display1
-000036 500a                      			SUBI temp, 10
-000037 cffb                      			RJMP splitDigits
+000030 e000                      	LDI temp, 0 ; Inicializando o digito mais significativo com 0 para que possamos incrementar
+000031 2e40                      	MOV display1, temp
+000032 2d02                      	MOV temp, time ;Utilizando a variável temp para guardar temporariamente o tempo
+                                 	splitDigits:
+000033 300a                      		CPI temp, 10 ; Compara o tempo com 10
+000034 f01c                      		BRLT digit0; Se for menor que 10, é desviado para a label digit0
                                  
-                                 			digit0:
-000038 2e30                      			MOV display0, temp
+000035 9443                      	INC display1;Caso contrário, incrementamos o valor do display mais significativo, uma vez que iremos subtrair uma dezena do tempo em temp
+000036 500a                      	SUBI temp, 10; Subtraindo uma dezena de temp
+000037 cffb                      	RJMP splitDigits; Itera até que temp seja menor que 10
                                  
-000039 e200                      			LDI temp, 0b00100000
-00003a 0e40                      			ADD display1, temp
-00003b e100                      			LDI temp, 0b00010000
-00003c 0e30                      			ADD display0, temp
-00003d 9508                      RET
+                                 	digit0:
+000038 2e30                      		MOV display0, temp ; Move o conetúdo do digito menos significativo para o display0
+                                 
+000039 e200                      	LDI temp, 0b00100000 ; Fazemos uma soma para definir qual transistor é responsável pelo display1 e display0
+00003a 0e40                      	ADD display1, temp ; Display 1, Transistor 2
+00003b e100                      	LDI temp, 0b00010000
+00003c 0e30                      	ADD display0, temp ; Display0, Transistor 1 
+00003d 9508                      RET ; Retorno rotina
                                  
                                  NextState:
                                  
-                                 			; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
-00003e e105                      			LDI temp, 21
-00003f 1650                      			CP count, temp
-000040 f409                      			BRNE update_state ; Avança o estado
-                                 			
-000041 d002                      			RCALL ResetPointer
-                                 
-                                 			; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
-                                 			; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
-                                 			;					receber os dados do estado 1)
-                                 			update_state:
-                                 
-000042 d006                      			RCALL UpdateState
+                                 	; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
+00003e e105                      	LDI temp, 21 ; Inicializando o valor de temp como 21
+00003f 1650                      	CP count, temp;Compara o contador com 21
+000040 f409                      	BRNE update_state ; Desvia se for diferente de 21
+                                 	;Caso contrário, o ponteiro é resetado para o estado inicial
+000041 d002                      	RCALL ResetPointer; Rotina reset do ponteiro
+                                 	;Estado é atualizado sempre
+                                 	update_state:
+000042 d006                      		RCALL UpdateState; Rotina de atualização de estado
 000043 9508                      RET
                                  
                                  ResetPointer:
-                                 
-                                 			; Volta para o estado inicial
-                                 			; Z será usado para receber as informações do estados
-000044 e3e0                      			LDI ZL, low(states*2)
-000045 e0f0                      			LDI ZH, high(states*2)
-                                 			; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
-000046 e000                      			LDI temp, 0
-000047 2e50                      			MOV count, temp
+                                 	; Volta para o estado inicial
+                                 	; Z será usado para receber as informações do estados
+000044 e3e0                      	LDI ZL, low(states*2)
+000045 e0f0                      	LDI ZH, high(states*2)
+                                 	; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
+000046 e000                      	LDI temp, 0
+000047 2e50                      	MOV count, temp
 000048 9508                      RET
                                  
+                                 /*Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+                                 Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
+                                 receber os dados do estado 1)*/
                                  UpdateState:
-000049 9005                      				LPM s1s2, Z+
-00004a 9453                      				INC count
-00004b 9015                      				LPM s3s4, Z+
-00004c 9453                      				INC count
-00004d 9025                      				LPM time, Z+
-00004e 9453                      				INC count
-00004f 9508                      RET
                                  
+000049 9005                      	LPM s1s2, Z+ ; Carrega da memória de programa o binário correspondendo ao conteúdo dos sinais 1 e 2 e incrementa o ponteiro em uma unidade
+00004a 9453                      	INC count	 ; Incrementa o contador em uma unidade
+00004b 9015                      	LPM s3s4, Z+ ; Carrega da memória de programa o binário correspondendo ao conteúdo dos sinais 3 e 4 e incrementa o ponteiro em uma unidade
+00004c 9453                      	INC count    ; Incrementa o contador em uma unidade
+00004d 9025                      	LPM time, Z+ ; Carrega da memória de programa o tempo que dura este estado
+00004e 9453                      	INC count    ; Incrementa o contador em uma unidade
+00004f 9508                      RET; Retorno da rotina
                                  
-                                 .equ ClockMHz = 16
-                                 .equ DelayMs = 5
+                                 ;Delay de 5ms, Utilizado para dar um delay entre as saídas de valores para as portas D e B.
+                                 .equ ClockMHz = 16 ; Clock 16Mhz
+                                 .equ DelayMs = 5 ; Delay 5ms
                                  Delay5ms:
-000050 e060                      	LDI r22, byte3(ClockMHz * 1000 * DelayMs / 5)
+000050 e060                      	LDI r22, byte3(ClockMHz * 1000 * DelayMs / 5);Configurando o contador para o delay
 000051 e35e                      	LDI r21, high(ClockMHz * 1000 * DelayMs / 5)
 000052 e840                      	LDI r20, low(ClockMHz * 1000 * DelayMs / 5)
                                  
-000053 5041                      	SUBI r20, 1
-000054 4050                      	SBCI r21, 0
-000055 4060                      	SBCI r22, 0
-000056 f7e0                      	BRCC pc-3
+000053 5041                      	SUBI r20, 1; Subtrai imediato 1
+000054 4050                      	SBCI r21, 0; Subtrai com Carry
+000055 4060                      	SBCI r22, 0;Subtrai com Carry
+000056 f7e0                      	BRCC pc-3 ;Desvia para pc-3 se o carry não está setado
                                  
-000057 9508                      	RET
+000057 9508                      	RET; Carry set retorna
                                  
                                  reset:
-                                 	;Stack initialization
+                                 	;Inicializando a pilha
 000058 ef0f                      	LDI temp, low(RAMEND)
 000059 bf0d                      	OUT SPL, temp
 00005a e008                      	LDI temp, high(RAMEND)
 00005b bf0e                      	OUT SPH, temp
-                                 	
+                                 	;Configurando o timer de 1s
                                  	#define CLOCK 16.0e6 ;clock speed
                                  	#define DELAY 1.0 ;seconds
                                  	.equ PRESCALE = 0b100 ;/128 prescale
@@ -1202,24 +1205,27 @@ AVRASM ver. 2.2.8  C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\P
 00006a 6002                      	SBR r16, 1 <<OCIE1A
 00006b 9300 006f                 	STS TIMSK1, r16
                                  
-00006d ef0f                      	LDI temp, 0xFF		;configure PORTB and PORTD as output
+                                 	;Configurações extras
+                                 
+00006d ef0f                      	LDI temp, 0xFF		;Configurando PORTB and PORTD como saída.
 00006e b90a                      	OUT DDRD, temp
 00006f b904                      	OUT DDRB, temp
                                  
-000070 dfd3                      	RCALL ResetPointer
-000071 dfd7                      	RCALL UpdateState
-000072 dfbd                      	RCALL SplitDig
+000070 dfd3                      	RCALL ResetPointer ; Inicializando o ponteiro dos estados
+000071 dfd7                      	RCALL UpdateState ; Obtendo as informações do estado inicial
+000072 dfbd                      	RCALL SplitDig ; Separando o primeiro tempo em dois dígitos
                                  
-000073 9478                      	SEI
+000073 9478                      	SEI; Ativando as interrupções
                                  
+                                 ; Na main apenas atualizamos o conteúdo das portas B e D, e entre cada atualização chamamos um delay de 5ms
                                  main:
-000074 b80b                      	OUT PORTD, s1s2
-000075 b835                      	OUT PORTB, display0
-000076 dfd9                      	RCALL Delay5ms
+000074 b80b                      	OUT PORTD, s1s2 ; Conteúdo dos sinais 1 e 2 é enviado para a porta D
+000075 b835                      	OUT PORTB, display0 ; Conteúdo do display0 é enviado para a porta B
+000076 dfd9                      	RCALL Delay5ms; Delay de 5ms
                                  
-000077 b81b                      	OUT PORTD, s3s4
-000078 b845                      	OUT PORTB, display1
-000079 dfd6                      	RCALL Delay5ms
+000077 b81b                      	OUT PORTD, s3s4; Conteúdo dos sinais 3 e 4 é enviado para a porta D
+000078 b845                      	OUT PORTB, display1; Conteúdo do display1 é enviado para a porta B
+000079 dfd6                      	RCALL Delay5ms; Delay de 5ms
                                  	
 
 

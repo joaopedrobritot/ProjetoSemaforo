@@ -22,18 +22,18 @@
   <FILE>ProjetoSemaforo.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <reset><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>179</LINE></reset>
+  <reset><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>182</LINE></reset>
   <OCI1A_Interrupt><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>74</LINE></OCI1A_Interrupt>
   <states><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>64</LINE></states>
   <no_update><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>97</LINE></no_update>
-  <NextState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>127</LINE></NextState>
-  <SplitDig><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>106</LINE></SplitDig>
-  <splitDigits><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>111</LINE></splitDigits>
-  <digit0><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>118</LINE></digit0>
-  <update_state><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>139</LINE></update_state>
+  <NextState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>131</LINE></NextState>
+  <SplitDig><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>110</LINE></SplitDig>
+  <splitDigits><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>114</LINE></splitDigits>
+  <digit0><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>122</LINE></digit0>
+  <update_state><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>140</LINE></update_state>
   <ResetPointer><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>144</LINE></ResetPointer>
-  <UpdateState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>155</LINE></UpdateState>
-  <Delay5ms><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>167</LINE></Delay5ms>
-  <main><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>227</LINE></main>
+  <UpdateState><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>157</LINE></UpdateState>
+  <Delay5ms><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>170</LINE></Delay5ms>
+  <main><FILE>C:\Users\derek\Desktop\ProjetoSemaforo-main\ProjetoSemaforo\ProjetoSemaforo\main.asm</FILE><LINE>233</LINE></main>
  </LABELS>
 </ASSEMBLER_INFO>

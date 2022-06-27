@@ -92,97 +92,100 @@ OCI1A_Interrupt:
 	Então quando 'count' for igual a 21 estaremos no último estado e o próximo estado será o inicial
 	*/
 
-	RCALL NextState
+	RCALL NextState ;Rotina para atualizar o estado
 	
 	no_update:
-		RCALL SplitDig
+		RCALL SplitDig ; Rotina para separar os dígitos e colocar os digitos nos registradores espécíficos para cada dígito
+
 	;Recuperando o contexto
 	POP temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
 	OUT SREG, temp ;Recuperando o contexto de SREG que estava na pilha para sair da interrução
 	POP temp ; Recuperando o valor de temp anterior a interrupção.
 
-	RETI
+	RETI ; Retorno da interrupção
 
+/*Rotina para dividir os dígitos, a rotina funciona decrementando dezenas e incrementando o digito mais 
+significativo até que o valor seja menor que 10, sendo o valor restante o digito menos significativo.
+*/
 SplitDig:
-			LDI temp, 0
-			MOV display1, temp
-			MOV temp, time
-		
-		splitDigits:
-			CPI temp, 10
-			BRLT digit0
-			INC display1
-			SUBI temp, 10
-			RJMP splitDigits
+	LDI temp, 0 ; Inicializando o digito mais significativo com 0 para que possamos incrementar
+	MOV display1, temp
+	MOV temp, time ;Utilizando a variável temp para guardar temporariamente o tempo
+	splitDigits:
+		CPI temp, 10 ; Compara o tempo com 10
+		BRLT digit0; Se for menor que 10, é desviado para a label digit0
 
-			digit0:
-			MOV display0, temp
+	INC display1;Caso contrário, incrementamos o valor do display mais significativo, uma vez que iremos subtrair uma dezena do tempo em temp
+	SUBI temp, 10; Subtraindo uma dezena de temp
+	RJMP splitDigits; Itera até que temp seja menor que 10
 
-			LDI temp, 0b00100000
-			ADD display1, temp
-			LDI temp, 0b00010000
-			ADD display0, temp
-RET
+	digit0:
+		MOV display0, temp ; Move o conetúdo do digito menos significativo para o display0
+
+	LDI temp, 0b00100000 ; Fazemos uma soma para definir qual transistor é responsável pelo display1 e display0
+	ADD display1, temp ; Display 1, Transistor 2
+	LDI temp, 0b00010000
+	ADD display0, temp ; Display0, Transistor 1 
+RET ; Retorno rotina
 
 NextState:
 
-			; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
-			LDI temp, 21
-			CP count, temp
-			BRNE update_state ; Avança o estado
-			
-			RCALL ResetPointer
-
-			; Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
-			; Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
-			;					receber os dados do estado 1)
-			update_state:
-
-			RCALL UpdateState
+	; Verificação do último estado, se não for o último ele avança, senão ele volta para o inicial
+	LDI temp, 21 ; Inicializando o valor de temp como 21
+	CP count, temp;Compara o contador com 21
+	BRNE update_state ; Desvia se for diferente de 21
+	;Caso contrário, o ponteiro é resetado para o estado inicial
+	RCALL ResetPointer; Rotina reset do ponteiro
+	;Estado é atualizado sempre
+	update_state:
+		RCALL UpdateState; Rotina de atualização de estado
 RET
 
 ResetPointer:
-
-			; Volta para o estado inicial
-			; Z será usado para receber as informações do estados
-			LDI ZL, low(states*2)
-			LDI ZH, high(states*2)
-			; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
-			LDI temp, 0
-			MOV count, temp
+	; Volta para o estado inicial
+	; Z será usado para receber as informações do estados
+	LDI ZL, low(states*2)
+	LDI ZH, high(states*2)
+	; Reseta o contador de estados (que conta em bytes [cada estado são 3 bytes])
+	LDI temp, 0
+	MOV count, temp
 RET
 
+/*Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
+receber os dados do estado 1)*/
 UpdateState:
-				LPM s1s2, Z+
-				INC count
-				LPM s3s4, Z+
-				INC count
-				LPM time, Z+
-				INC count
-RET
 
+	LPM s1s2, Z+ ; Carrega da memória de programa o binário correspondendo ao conteúdo dos sinais 1 e 2 e incrementa o ponteiro em uma unidade
+	INC count	 ; Incrementa o contador em uma unidade
+	LPM s3s4, Z+ ; Carrega da memória de programa o binário correspondendo ao conteúdo dos sinais 3 e 4 e incrementa o ponteiro em uma unidade
+	INC count    ; Incrementa o contador em uma unidade
+	LPM time, Z+ ; Carrega da memória de programa o tempo que dura este estado
+	INC count    ; Incrementa o contador em uma unidade
+RET; Retorno da rotina
 
-.equ ClockMHz = 16
-.equ DelayMs = 5
+;Delay de 5ms, Utilizado para dar um delay entre as saídas de valores para as portas D e B.
+.equ ClockMHz = 16 ; Clock 16Mhz
+.equ DelayMs = 5 ; Delay 5ms
 Delay5ms:
-	LDI r22, byte3(ClockMHz * 1000 * DelayMs / 5)
+	LDI r22, byte3(ClockMHz * 1000 * DelayMs / 5);Configurando o contador para o delay
 	LDI r21, high(ClockMHz * 1000 * DelayMs / 5)
 	LDI r20, low(ClockMHz * 1000 * DelayMs / 5)
 
-	SUBI r20, 1
-	SBCI r21, 0
-	SBCI r22, 0
-	BRCC pc-3
+	SUBI r20, 1; Subtrai imediato 1
+	SBCI r21, 0; Subtrai com Carry
+	SBCI r22, 0;Subtrai com Carry
+	BRCC pc-3 ;Desvia para pc-3 se o carry não está setado
 
-	RET
+	RET; Carry set retorna
 
 reset:
-	;Stack initialization
+	;Inicializando a pilha
 	LDI temp, low(RAMEND)
 	OUT SPL, temp
 	LDI temp, high(RAMEND)
 	OUT SPH, temp
-	
+	;Configurando o timer de 1s
 	#define CLOCK 16.0e6 ;clock speed
 	#define DELAY 1.0 ;seconds
 	.equ PRESCALE = 0b100 ;/128 prescale
@@ -214,23 +217,26 @@ reset:
 	SBR r16, 1 <<OCIE1A
 	STS TIMSK1, r16
 
-	LDI temp, 0xFF		;configure PORTB and PORTD as output
+	;Configurações extras
+
+	LDI temp, 0xFF		;Configurando PORTB and PORTD como saída.
 	OUT DDRD, temp
 	OUT DDRB, temp
 
-	RCALL ResetPointer
-	RCALL UpdateState
-	RCALL SplitDig
+	RCALL ResetPointer ; Inicializando o ponteiro dos estados
+	RCALL UpdateState ; Obtendo as informações do estado inicial
+	RCALL SplitDig ; Separando o primeiro tempo em dois dígitos
 
-	SEI
+	SEI; Ativando as interrupções
 
+; Na main apenas atualizamos o conteúdo das portas B e D, e entre cada atualização chamamos um delay de 5ms
 main:
-	OUT PORTD, s1s2
-	OUT PORTB, display0
-	RCALL Delay5ms
+	OUT PORTD, s1s2 ; Conteúdo dos sinais 1 e 2 é enviado para a porta D
+	OUT PORTB, display0 ; Conteúdo do display0 é enviado para a porta B
+	RCALL Delay5ms; Delay de 5ms
 
-	OUT PORTD, s3s4
-	OUT PORTB, display1
-	RCALL Delay5ms
+	OUT PORTD, s3s4; Conteúdo dos sinais 3 e 4 é enviado para a porta D
+	OUT PORTB, display1; Conteúdo do display1 é enviado para a porta B
+	RCALL Delay5ms; Delay de 5ms
 	
-	RJMP main
+	RJMP main;Itera indefinidamente
