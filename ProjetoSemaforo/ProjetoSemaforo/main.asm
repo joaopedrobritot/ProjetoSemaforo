@@ -95,7 +95,7 @@ OCI1A_Interrupt:
 	RCALL NextState ;Rotina para atualizar o estado
 	
 	no_update:
-		RCALL SplitDig ; Rotina para separar os dígitos e colocar os digitos nos registradores espécíficos para cada dígito
+		RCALL SplitDig ; Rotina para separar os dígitos e colocar os digitos nos registradores específicos para cada dígito
 
 	;Recuperando o contexto
 	POP temp ;Recuperando o conteúdo de SREG que está na pilha e colocando em temp.
@@ -107,6 +107,7 @@ OCI1A_Interrupt:
 /*Rotina para dividir os dígitos, a rotina funciona decrementando dezenas e incrementando o digito mais 
 significativo até que o valor seja menor que 10, sendo o valor restante o digito menos significativo.
 */
+
 SplitDig:
 	LDI temp, 0 ; Inicializando o digito mais significativo com 0 para que possamos incrementar
 	MOV display1, temp
@@ -151,9 +152,10 @@ ResetPointer:
 	MOV count, temp
 RET
 
-/*Amazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
+/*Armazena as informações do estado atual e atualiza Z e 'count' de modo que eles já apontem para o próximo estado
 Exemplo: Z -> state[0] -> Recebe os dados do estado 0 e incrementa 3 -> state[3] (já preparado para
 receber os dados do estado 1)*/
+
 UpdateState:
 
 	LPM s1s2, Z+ ; Carrega da memória de programa o binário correspondendo ao conteúdo dos sinais 1 e 2 e incrementa o ponteiro em uma unidade
