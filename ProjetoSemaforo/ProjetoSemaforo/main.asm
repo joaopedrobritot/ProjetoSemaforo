@@ -47,10 +47,10 @@ Um estado é representado por 3 bytes, onde:
 - O 2º byte tem: 2 bits selecionando o segundo transistor e 3 bits para cada um dos dois últimos semáforos (s3 e s4)
 - O 3º byte é responsável por armazenar o tempo necessário para ir ao próximo estado
 
-Exemplos: 0b01001010 -> 01 selecionam o primeiro transistor (semáforos s1 e s2) 001 acende o sinal verde para s1
-						e 010 que acende o sinal amarelo para s2
-		  0b10100001 -> 10 selecionam o segundo transistor (semáforos s3 e s4) 100 acende o sinal vermelho para s3
-						e 001 que acende o sinal verde para s4
+Exemplos: 0b01001010 -> 01 selecionam o primeiro transistor (semáforos s1 e s2) 001 acende o sinal verde para s2
+						e 010 que acende o sinal amarelo para s1
+	  0b10100001 -> 10 selecionam o segundo transistor (semáforos s3 e s4) 100 acende o sinal vermelho para s4
+						e 001 que acende o sinal verde para s3
 
 t1, t2: transistores 1 e 2
 s1,s2,s3,s4: semáforos 1,2,3 e 4
@@ -60,15 +60,15 @@ Y: amarelo
 T: Tempo até o próximo estado
 */
 
-;			  t1,s1,s2    t2,s3,s4    Tempo
+;	      t1,s2,s1    t2,s4,s3    Tempo
 states: .db 0b01001100, 0b10100001, 0b00010100, /*; Estado 1: s1:R / s2:G / s3:G / s4:R / T:20s */ \
-			0b01001100, 0b10100010, 0b00000100, /*; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s */ \
-			0b01001100, 0b10001100, 0b00110100, /*; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s */ \
-			0b01010100, 0b10010100, 0b00000100, /*; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s */ \
-			0b01100001, 0b10100100, 0b00010100, /*; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s */ \
-			0b01100010, 0b10100100, 0b00000100, /*; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s */ \
-			0b01100100, 0b10100100, 0b00010100, /*; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s */ \
-			0b00000000 /*; padding para completar a palavra na memória */ \
+	    0b01001100, 0b10100010, 0b00000100, /*; Estado 2: s1:R / s2:G / s3:Y / s4:R / T:4s */ \
+	    0b01001100, 0b10001100, 0b00110100, /*; Estado 3: s1:R / s2:G / s3:R / s4:G / T:52s */ \
+	    0b01010100, 0b10010100, 0b00000100, /*; Estado 4: s1:R / s2:Y / s3:R / s4:Y / T:4s */ \
+	    0b01100001, 0b10100100, 0b00010100, /*; Estado 5: s1:G / s2:R / s3:R / s4:R / T:20s */ \
+	    0b01100010, 0b10100100, 0b00000100, /*; Estado 6: s1:Y / s2:R / s3:R / s4:R / T:4s */ \
+	    0b01100100, 0b10100100, 0b00010100, /*; Estado 7: s1:R / s2:R / s3:R / s4:R / T:20s */ \
+	    0b00000000				/*; padding para completar a palavra na memória */ \
 
 ; Interrupção do Delay de 1
 OCI1A_Interrupt:
