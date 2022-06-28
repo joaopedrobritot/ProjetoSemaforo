@@ -2,6 +2,7 @@
 ; ProjetoSemaforo.asm
 ;
 ; Created: 22/06/2022 14:01:58
+; Microntroladores 2021.2
 ; Author : Derek Alves
 ;	   Ruan Heleno
 ;	   João Pedro Brito
