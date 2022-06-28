@@ -7,7 +7,6 @@
 ;	   Ruan Heleno
 ;	   João Pedro Brito
 ;	   Matheus Gêda
-;
 
 ; registrador utilizado para operações temporárias
 .def temp = r16
@@ -188,7 +187,7 @@ reset:
 	OUT SPL, temp
 	LDI temp, high(RAMEND)
 	OUT SPH, temp
-	;Configurando o timer de 1s
+	;Configurando o timer de 1s.
 	#define CLOCK 16.0e6 ;clock speed
 	#define DELAY 1.0 ;seconds
 	.equ PRESCALE = 0b100 ;/128 prescale
@@ -234,11 +233,11 @@ reset:
 
 ; Na main apenas atualizamos o conteúdo das portas B e D, e entre cada atualização chamamos um delay de 5ms
 main:
-	OUT PORTD, s1s2 ; Conteúdo dos sinais 1 e 2 é enviado para a porta D
+	OUT PORTD, s1s2 ; Conteúdo dos sinais s1 e s2 é enviado para a porta D
 	OUT PORTB, display0 ; Conteúdo do display0 é enviado para a porta B
 	RCALL Delay5ms; Delay de 5ms
 
-	OUT PORTD, s3s4; Conteúdo dos sinais 3 e 4 é enviado para a porta D
+	OUT PORTD, s3s4; Conteúdo dos sinais s3 e s4 é enviado para a porta D
 	OUT PORTB, display1; Conteúdo do display1 é enviado para a porta B
 	RCALL Delay5ms; Delay de 5ms
 	
